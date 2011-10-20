@@ -28,14 +28,6 @@ int main(int argc, char **argv) {
   if((e = elf_begin(fd, ELF_C_RDWR, NULL)) == NULL)
     errx(EX_SOFTWARE, "elf_begin() failed: %s.", elf_errmsg(-1));
 
-  // read the elf header
-  if((ehdr = elf64_getehdr(e)) == NULL)
-    errx(EX_SOFTWARE, "elf64_getehdr() failed: %s.", elf_errmsg(-1));
-
-  // compute the layout of the object
-  if(elf_update(e, ELF_C_NULL) < 0)
-    errx(EX_SOFTWARE, "elf_update(NULL) failed: %s.", elf_errmsg(-1));
-
   // write out the resulting elf object
   if(elf_update(e, ELF_C_WRITE) < 0)
     errx(EX_SOFTWARE, "elf_update() failed: %s.", elf_errmsg(-1));
