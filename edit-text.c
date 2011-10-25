@@ -26,11 +26,10 @@ int main(int argc, char *argv[])
   n = 0;
 
   /* sanity checks */
-  if ( argc != 2)
+  if (argc != 2)
     errx(EX_USAGE, " usage : % s file - name ", argv [0]);
-  if ( elf_version ( EV_CURRENT ) == EV_NONE )
-    errx(EX_SOFTWARE, " ELF library initialization failed : % s ",
-         elf_errmsg(-1));
+  if (elf_version(EV_CURRENT) == EV_NONE)
+    errx(EX_SOFTWARE, "ELF library initialization failed: %s", elf_errmsg(-1));
 
   if((fd=open (argv[1], O_RDWR, 0)) < 0)
     err(EX_NOINPUT, " open \"% s \" failed ", argv[1]);
@@ -39,7 +38,7 @@ int main(int argc, char *argv[])
     errx(EX_SOFTWARE, "elf_begin() failed: %s.", elf_errmsg(-1));
 
   /* find the .text section */
-  if(elf_getshdrstrndx (e, &shstrndx) != 0)
+  if(elf_getshdrstrndx(e, &shstrndx) != 0)
     errx(EX_SOFTWARE, " elf_getshdrstrndx () failed : %s.", elf_errmsg(-1));
 
   while((scn=elf_nextscn(e, scn)) != NULL) {

@@ -2,7 +2,10 @@ CC=gcc
 LIBELF_PATH=/usr/local/src/elftoolchain/
 LIBELF_LIB=/usr/lib/libelf.a
 
-all: simple-libelf edit-text hello
+all: funcs simple-libelf edit-text hello
+
+funcs: funcs.c
+	$(CC) -o $@ -I$(LIBELF_PATH)common -I$(LIBELF_PATH)libelf/ $^ $(LIBELF_LIB)
 
 simple-libelf: simple-libelf.c
 	$(CC) -o $@ -I$(LIBELF_PATH)common -I$(LIBELF_PATH)libelf/ $^ $(LIBELF_LIB)
