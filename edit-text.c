@@ -18,12 +18,13 @@ static char *extra_data = "goodbye world";
 
 int main(int argc, char *argv[])
 {
-  int error, fd, result;
+  int error, fd, n;
   Elf *e;
+  char *buf, *name, *p;
   Elf_Scn *scn;
   Elf_Data *d;
-  off_t fsz1, fsz2;
-  char *buf;
+  GElf_Shdr shdr;
+  size_t shstrndx;
 
   e = NULL;
   fd = -1;
@@ -41,8 +42,27 @@ int main(int argc, char *argv[])
   if((e=elf_begin(fd, ELF_C_RDWR, NULL)) == NULL)
     errx(EX_SOFTWARE, "elf_begin() failed: %s.", elf_errmsg(-1));
 
-  /* Retrieve section 1 and extend it. */
-  if ((scn = elf_getscn(e, 13)) == NULL) /* <- 13 indexes the .text section */
+  /* find the .text section */
+  if(elf_getshdrstrndx (e, &shstrndx) != 0)
+    errx(EX_SOFTWARE, " elf_getshdrstrndx () failed : %s.", elf_errmsg(-1));
+
+  scn = NULL;
+  n = 0;
+  while((scn=elf_nextscn(e, scn)) != NULL) {
+    if(gelf_getshdr(scn, &shdr) != &shdr)
+      errx(EX_SOFTWARE, "getshdr() failed: %s.", elf_errmsg(-1));
+    if((name=elf_strptr(e, shstrndx, shdr.sh_name)) == NULL)
+      errx(EX_SOFTWARE, "elf_strptr() failed: %s. ", elf_errmsg(-1));
+    n++;
+    if((strcmp(".text", name) == 0)) break;
+  }
+  if(scn == NULL){
+    printf(".text section not found.\n");
+    return 1;
+  }
+
+  /* Retrieve the .text section and edit it. */
+  if ((scn = elf_getscn(e, n)) == NULL)
     printf("elf_getscn() failed: \"%s\".\n", elf_errmsg(-1));
 
   if ((d = elf_getdata(scn, NULL)) == NULL)
