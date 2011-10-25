@@ -8,26 +8,22 @@
 #include <libelf.h>
 #include <gelf.h>
 #include <stdio.h>
-#include <stdint.h>
-#include <string.h>
-#include <unistd.h>
 #include <sysexits.h>
-
-static char *base_data = "hello world";
-static char *extra_data = "goodbye world";
 
 int main(int argc, char *argv[])
 {
-  int error, fd, n;
+  int fd, n;
   Elf *e;
-  char *buf, *name, *p;
+  char *buf, *name;
   Elf_Scn *scn;
   Elf_Data *d;
   GElf_Shdr shdr;
   size_t shstrndx;
 
   e = NULL;
+  scn = NULL;
   fd = -1;
+  n = 0;
 
   /* sanity checks */
   if ( argc != 2)
@@ -46,8 +42,6 @@ int main(int argc, char *argv[])
   if(elf_getshdrstrndx (e, &shstrndx) != 0)
     errx(EX_SOFTWARE, " elf_getshdrstrndx () failed : %s.", elf_errmsg(-1));
 
-  scn = NULL;
-  n = 0;
   while((scn=elf_nextscn(e, scn)) != NULL) {
     if(gelf_getshdr(scn, &shdr) != &shdr)
       errx(EX_SOFTWARE, "getshdr() failed: %s.", elf_errmsg(-1));
@@ -89,7 +83,7 @@ int main(int argc, char *argv[])
     printf("elf_update() failed: \"%s\".", elf_errmsg(-1));
 
   /* Close the temporary file. */
-  if ((error = elf_end(e)) != 0)
+  if (elf_end(e) != 0)
     printf("elf_end() failed: \"%s\".\n", elf_errmsg(-1));
 
   (void) close(fd);
