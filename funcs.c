@@ -5,13 +5,15 @@
 #include <stdio.h>
 #include <sysexits.h>
 
+Elf *read_elf(char *path);
+
 int main(int argc, char *argv[]){
   Elf *e;
 
   if(start_elf() != 0)
     printf("start_elf() failed\n");
 
-  if(read_elf(argv[1], e) != 0)
+  if((e=read_elf(argv[1])) == NULL)
     printf("read_elf() failed\n");
 
   printf(".text section ID is %d\n", text_id(e));
@@ -23,7 +25,8 @@ int start_elf(){
   return 0;
 }
 
-int read_elf(char *path, Elf *e){
+Elf *read_elf(char *path){
+  Elf *e;
   int fd = -1;
 
   if((fd=open (path, O_RDWR, 0)) < 0)
@@ -32,7 +35,7 @@ int read_elf(char *path, Elf *e){
   if((e=elf_begin(fd, ELF_C_RDWR, NULL)) == NULL)
     errx(EX_SOFTWARE, "elf_begin() failed: %s.", elf_errmsg(-1));
 
-  return 0;
+  return (e);
 }
 
 int text_id(Elf *e){
