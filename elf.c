@@ -4,6 +4,7 @@
 #define ELF32 1
 #define ELF64 2
 #define READ(buf,x,y) int_from_bytes(buf,(16 + (class * x)),(class * y))
+#define CREAD(buf,x,y) int_from_bytes(buf,(16 + (class * x)),y)
 #define CLASS(buf)   buf[4]
 #define TYPE(buf)    READ(buf, 0,  1)
 #define MACHINE(buf) READ(buf, 1,  1)
@@ -11,6 +12,13 @@
 #define ENTRY(buf)   READ(buf, 4,  2)
 #define PHOFF(buf)   READ(buf, 8,  2)
 #define SHOFF(buf)   READ(buf, 12, 2)
+#define FLAGS(buf)   CREAD(buf, 16, 2)
+#define EH_SZ(buf)   CREAD(buf, 18, 1)
+#define PH_E_SZ(buf) CREAD(buf, 19, 1)
+#define PH_NUM(buf)  CREAD(buf, 20, 1)
+#define SH_E_SZ(buf) CREAD(buf, 21, 1)
+#define SH_NUM(buf)  CREAD(buf, 22, 1)
+#define SH_SRND(buf) CREAD(buf, 23, 1)
 
 int class;
 char *read_raw(char *path);
@@ -18,6 +26,7 @@ void check_magic(char *buf);
 int elf_class(char *buf);
 int int_from_bytes(char *buf, int pos, int num);
 void print_header_info(char *buf);
+int text_section_header(char *buf);
 
 int main(int argc, char *argv[]){
   char *buf = read_raw(argv[1]);
@@ -34,12 +43,21 @@ int main(int argc, char *argv[]){
   print_header_info(buf);
 
   /* find the text section */
+  
 
   /* return the text section */
 
   /* update the text section */
 
   return 0;
+}
+
+int text_section_header(char *buf){
+  /* find the section headers */
+  int shoff = SHOFF(buf);
+  /* find the section names */
+  /* move through section headers until found .text section header */
+
 }
 
 void print_header_info(char *buf){
@@ -55,6 +73,13 @@ void print_header_info(char *buf){
   printf("entry\t%d\n", ENTRY(buf));
   printf("phoff\t%d\n", PHOFF(buf));
   printf("shoff\t%d\n", SHOFF(buf));
+  printf("flags\t%d\n", FLAGS(buf));
+  printf("eh_sz\t%d\n", EH_SZ(buf));
+  printf("ph_e_sz\t%d\n", PH_E_SZ(buf));
+  printf("ph_num\t%d\n", PH_NUM(buf));
+  printf("sh_e_sz\t%d\n", SH_E_SZ(buf));
+  printf("sh_num\t%d\n", SH_NUM(buf));
+  printf("sh_srnd\t%d\n", SH_SRND(buf));
 }
 
 int int_from_bytes(char *buf, int pos, int num){
