@@ -24,7 +24,7 @@ int class;
 char *read_raw(char *path);
 void check_magic(char *buf);
 int elf_class(char *buf);
-int int_from_bytes(char *buf, int pos, int num);
+unsigned int int_from_bytes(char *buf, int pos, int num);
 void print_header_info(char *buf);
 int text_section_header(char *buf);
 
@@ -43,7 +43,8 @@ int main(int argc, char *argv[]){
   print_header_info(buf);
 
   /* find the text section */
-  
+  int text_shd = text_section_header(buf);
+  printf("text section header ID = %d\n", text_shd);
 
   /* return the text section */
 
@@ -53,11 +54,45 @@ int main(int argc, char *argv[]){
 }
 
 int text_section_header(char *buf){
-  /* find the section headers */
   int shoff = SHOFF(buf);
-  /* find the section names */
-  /* move through section headers until found .text section header */
+  int shesz = SH_E_SZ(buf);
+  int shnum = SH_NUM(buf);
+  int shsrnd = SH_SRND(buf);
 
+  int sh_names[shnum];
+  int sh_offsets[shnum];
+
+  /* print the names of the section headers */
+  int i;
+  for(i=0;i<shnum;i++){
+    sh_names[i] = int_from_bytes(buf,(shoff + (shesz * i)), (class * 2));
+    sh_offsets[i] = int_from_bytes(buf,(shoff + (class * 12) + (shesz * i)), (class * 4));
+  }
+
+  /* find the .text section */
+  int str_off = sh_offsets[shsrnd];
+  char name[256];
+  int j;
+  for(i=0;i<shnum;i++){
+    j=-1;
+    do {
+      j++;
+      name[j] = buf[str_off + sh_names[i] + j];
+    } while (name[j] != 0);
+
+    /* show the section names */
+    /* printf("name[%d] %s\n", i, name); */
+
+    if ((name[0] == '.') &&
+        (name[1] == 't') &&
+        (name[2] == 'e') &&
+        (name[3] == 'x') &&
+        (name[4] == 't') &&
+        (name[5] == 0))
+      return i;
+  }
+
+  return -1;
 }
 
 void print_header_info(char *buf){
@@ -82,11 +117,19 @@ void print_header_info(char *buf){
   printf("sh_srnd\t%d\n", SH_SRND(buf));
 }
 
-int int_from_bytes(char *buf, int pos, int num){
+unsigned int int_from_bytes(char *buf, int pos, int num){
   char tmp[num];
   int i, acc = 0;
   for(i=0;i<num;i++) tmp[i] = buf[(pos + i)];
   for(i=0;i<num;i++) acc += tmp[i] << (8 * i);
+  if (acc < 0){
+    int tmp;
+    switch (num){
+    case 4: tmp=256; break;
+    default: printf("error: negative integer %d size:%d\n", acc, num);
+    }
+    acc = acc + tmp;
+  }
   return acc;
 }
 
