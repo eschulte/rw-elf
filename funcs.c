@@ -5,20 +5,6 @@
 #include <stdio.h>
 #include <sysexits.h>
 
-struct _Elf { /* partial struct for accessing some fields */
-	int		e_activations;	/* activation count */
-	unsigned int	e_byteorder;	/* ELFDATA* */
-	int		e_class;	/* ELFCLASS*  */
-	Elf_Cmd		e_cmd;		/* ELF_C_* used at creation time */
-	int		e_fd;		/* associated file descriptor */
-	unsigned int	e_flags;	/* ELF_F_* & LIBELF_F_* flags */
-	Elf_Kind	e_kind;		/* ELF_K_* */
-	Elf		*e_parent; 	/* non-NULL for archive members */
-	char		*e_rawfile;	/* uninterpreted bytes */
-	size_t		e_rawsize;	/* size of uninterpreted bytes */
-	unsigned int	e_version;	/* file version */
-};
-
 void start_elf();
 Elf *read_elf(char *path);
 int text_id(Elf *e);
@@ -141,6 +127,4 @@ void write_elf(Elf *e){
   /* Close the temporary file. */
   if (elf_end(e) != 0)
     printf("elf_end() failed: \"%s\".\n", elf_errmsg(-1));
-
-  (void) close(((struct _Elf *) e)->e_fd);
 }
