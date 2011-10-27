@@ -24,10 +24,13 @@
 
 /* Section Header */
 #define SH_NAME(buf,shoff,shesz,ind) int_from_bytes(buf,(shoff + (shesz * ind)), (class * 2))
+#define SH_ADDR(buf,shoff,shesz,ind) int_from_bytes(buf,(shoff + (class * 8) + (shesz * ind)), (class * 4))
 #define SH_OFF(buf,shoff,shesz,ind) int_from_bytes(buf,(shoff + (class * 12) + (shesz * ind)), (class * 4))
 #define SH_SIZE(buf,shoff,shesz,ind) int_from_bytes(buf,(shoff + (class * 16) + (shesz * ind)), (class * 4))
 
 int class;
+void write_raw(char *path, char *buf, int size);
+int file_size(char *path);
 char *read_raw(char *path);
 void check_magic(char *buf);
 int elf_class(char *buf);
@@ -35,38 +38,120 @@ unsigned int int_from_bytes(char *buf, int pos, int num);
 void print_header_info(char *buf);
 int text_section_header(char *buf);
 char *section_data(char *buf, int id);
+int get_text_address(char *path);
+int get_text_offset(char *path);
+int get_text_data_size(char *path);
+char *get_text_data(char *path);
 
 int main(int argc, char *argv[]){
-  char *buf = read_raw(argv[1]);
+  if(argc != 3){
+    printf("usage: elf [input-file] [output-file]\n");
+    return 1;
+  }
+
+  char *in      = argv[1];
+  char *out     = argv[2];
+  char *buf     = read_raw(in);
+  long int size = file_size(in);
+  int offset    = get_text_offset(in);
+  int text_size = get_text_data_size(in);
+
+  /* update the last byte of the .text section */
+  buf[(offset + text_size - 1)] = 190;
+
+  write_raw(out, buf, size);
+
+  return 0;
+}
+
+int get_text_address(char *path){
+  char *buf = read_raw(path);
   int text_shd;
 
   /* sanity check */
   check_magic(buf);
   class = CLASS(buf);
-  if(!((class == 1) || (class == 2))){
+  if(!((class == 1) || (class == 2)))
     printf("invalid elf class\n");
-    return 1;
-  }
 
   /* find the text section */
-  if((text_shd = text_section_header(buf)) < 0){
+  if((text_shd = text_section_header(buf)) < 0)
     printf("text sectin not found\n");
-    return 1;
-  }
 
-  /* return the .text data */
+  /* get the size of the text section */
+  int shoff = SHOFF(buf);
+  int shesz = SH_E_SZ(buf);
+  int addr = SH_ADDR(buf,shoff,shesz,text_shd);
+
+  free(buf);
+  return addr;
+}
+
+int get_text_offset(char *path){
+  char *buf = read_raw(path);
+  int text_shd;
+
+  /* sanity check */
+  check_magic(buf);
+  class = CLASS(buf);
+  if(!((class == 1) || (class == 2)))
+    printf("invalid elf class\n");
+
+  /* find the text section */
+  if((text_shd = text_section_header(buf)) < 0)
+    printf("text sectin not found\n");
+
+  /* get the size of the text section */
+  int shoff = SHOFF(buf);
+  int shesz = SH_E_SZ(buf);
+  int off = SH_OFF(buf,shoff,shesz,text_shd);
+
+  free(buf);
+  return off;
+}
+
+int get_text_data_size(char *path){
+  char *buf = read_raw(path);
+  int text_shd;
+
+  /* sanity check */
+  check_magic(buf);
+  class = CLASS(buf);
+  if(!((class == 1) || (class == 2)))
+    printf("invalid elf class\n");
+
+  /* find the text section */
+  if((text_shd = text_section_header(buf)) < 0)
+    printf("text sectin not found\n");
+
+  /* get the size of the text section */
   int shoff = SHOFF(buf);
   int shesz = SH_E_SZ(buf);
   int size = SH_SIZE(buf,shoff,shesz,text_shd);
 
+  free(buf);
+  return size;
+}
+
+char *get_text_data(char *path){
+  char *buf = read_raw(path);
+  int text_shd;
+
+  /* sanity check */
+  check_magic(buf);
+  class = CLASS(buf);
+  if(!((class == 1) || (class == 2)))
+    printf("invalid elf class\n");
+
+  /* find the text section */
+  if((text_shd = text_section_header(buf)) < 0)
+    printf("text sectin not found\n");
+
+  /* get the .text data */
   unsigned char *text = section_data(buf, text_shd);
 
-  int i;
-  for(i=0;i<size;i++)
-    printf("%d ", text[i]);
-  printf("\n");
-
-  return 0;
+  free(buf);
+  return text;
 }
 
 char *section_data(char *buf, int id){
@@ -172,7 +257,7 @@ char *read_raw(char *path){
   /* open file */
   file = fopen(path, "rb");
   if (!file) {
-    fprintf(stderr, "Unable to open file %s", path);
+    fprintf(stderr, "Unable to open file %s\n", path);
     return;
   }
 	
@@ -189,4 +274,25 @@ char *read_raw(char *path){
   fclose(file);
 
   return buf;
+}
+
+int file_size(char *path){
+  FILE *file;
+  unsigned long length;
+
+  file = fopen(path, "rb");
+  fseek(file, 0, SEEK_END);
+  length = ftell(file);
+  fclose(file);
+
+  return length;
+}
+
+void write_raw(char *path, char *buf, int size){
+  FILE *file;
+  file = fopen(path, "w");
+  int i;
+  for(i=0;i<size;i++)
+    fputc(buf[i], file);
+  fclose(file);
 }
