@@ -5,6 +5,8 @@
 #define ELF64 2
 #define READ(buf,x,y) int_from_bytes(buf,(16 + (class * x)),(class * y))
 #define CREAD(buf,x,y) int_from_bytes(buf,(16 + (class * x)),y)
+
+/* Elf Header */
 #define CLASS(buf)   buf[4]
 #define TYPE(buf)    READ(buf, 0,  1)
 #define MACHINE(buf) READ(buf, 1,  1)
@@ -20,6 +22,10 @@
 #define SH_NUM(buf)  CREAD(buf, 22, 1)
 #define SH_SRND(buf) CREAD(buf, 23, 1)
 
+/* Section Header */
+#define SH_NAME(buf,shoff,shesz,ind) int_from_bytes(buf,(shoff + (shesz * ind)), (class * 2))
+#define SH_OFF(buf,shoff,shesz,ind) int_from_bytes(buf,(shoff + (class * 12) + (shesz * ind)), (class * 4))
+
 int class;
 char *read_raw(char *path);
 void check_magic(char *buf);
@@ -30,6 +36,7 @@ int text_section_header(char *buf);
 
 int main(int argc, char *argv[]){
   char *buf = read_raw(argv[1]);
+  int text_shd;
 
   /* sanity check */
   check_magic(buf);
@@ -43,7 +50,10 @@ int main(int argc, char *argv[]){
   print_header_info(buf);
 
   /* find the text section */
-  int text_shd = text_section_header(buf);
+  if((text_shd = text_section_header(buf)) < 0){
+    printf("text sectin not found\n");
+    return 1;
+  }
   printf("text section header ID = %d\n", text_shd);
 
   /* return the text section */
@@ -65,8 +75,8 @@ int text_section_header(char *buf){
   /* print the names of the section headers */
   int i;
   for(i=0;i<shnum;i++){
-    sh_names[i] = int_from_bytes(buf,(shoff + (shesz * i)), (class * 2));
-    sh_offsets[i] = int_from_bytes(buf,(shoff + (class * 12) + (shesz * i)), (class * 4));
+    sh_names[i] = SH_NAME(buf,shoff,shesz,i);
+    sh_offsets[i] = SH_OFF(buf,shoff,shesz,i);
   }
 
   /* find the .text section */
