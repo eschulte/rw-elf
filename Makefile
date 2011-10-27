@@ -17,4 +17,4 @@ hello: hello.c
 	$(CC) -o $@ $^
 
 clean:
-	rm -f hello edit-text simple-libelf
+	rm -f hello edit-text simple-libelf funcs
