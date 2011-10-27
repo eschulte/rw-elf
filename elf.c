@@ -25,6 +25,7 @@
 /* Section Header */
 #define SH_NAME(buf,shoff,shesz,ind) int_from_bytes(buf,(shoff + (shesz * ind)), (class * 2))
 #define SH_OFF(buf,shoff,shesz,ind) int_from_bytes(buf,(shoff + (class * 12) + (shesz * ind)), (class * 4))
+#define SH_SIZE(buf,shoff,shesz,ind) int_from_bytes(buf,(shoff + (class * 16) + (shesz * ind)), (class * 4))
 
 int class;
 char *read_raw(char *path);
@@ -33,6 +34,7 @@ int elf_class(char *buf);
 unsigned int int_from_bytes(char *buf, int pos, int num);
 void print_header_info(char *buf);
 int text_section_header(char *buf);
+char *section_data(char *buf, int id);
 
 int main(int argc, char *argv[]){
   char *buf = read_raw(argv[1]);
@@ -46,21 +48,40 @@ int main(int argc, char *argv[]){
     return 1;
   }
 
-  /* print out header information */
-  print_header_info(buf);
-
   /* find the text section */
   if((text_shd = text_section_header(buf)) < 0){
     printf("text sectin not found\n");
     return 1;
   }
-  printf("text section header ID = %d\n", text_shd);
 
-  /* return the text section */
+  /* return the .text data */
+  int shoff = SHOFF(buf);
+  int shesz = SH_E_SZ(buf);
+  int size = SH_SIZE(buf,shoff,shesz,text_shd);
 
-  /* update the text section */
+  unsigned char *text = section_data(buf, text_shd);
+
+  int i;
+  for(i=0;i<size;i++)
+    printf("%d ", text[i]);
+  printf("\n");
 
   return 0;
+}
+
+char *section_data(char *buf, int id){
+  int shoff = SHOFF(buf);
+  int shesz = SH_E_SZ(buf);
+  int off = SH_OFF(buf,shoff,shesz,id);
+  int size = SH_SIZE(buf,shoff,shesz,id);
+  int i, tmp;
+  char *data;
+
+  data = (unsigned char *) malloc(size+1);
+
+  for(i=0;i<size;i++)
+    data[i] = buf[off+i];
+  return data;
 }
 
 int text_section_header(char *buf){
@@ -128,23 +149,11 @@ void print_header_info(char *buf){
 }
 
 unsigned int int_from_bytes(char *buf, int pos, int num){
-  char tmp[num];
-  int i, acc = 0;
+  unsigned char tmp[num];
+  int i, t, acc = 0;
   for(i=0;i<num;i++) tmp[i] = buf[(pos + i)];
   for(i=0;i<num;i++) acc += tmp[i] << (8 * i);
-  if (acc < 0){
-    int tmp;
-    switch (num){
-    case 4: tmp=256; break;
-    default: printf("error: negative integer %d size:%d\n", acc, num);
-    }
-    acc = acc + tmp;
-  }
   return acc;
-}
-
-int elf_class(char *buf){
-  return buf[4];
 }
 
 void check_magic(char *buf){
@@ -173,7 +182,7 @@ char *read_raw(char *path){
   fseek(file, 0, SEEK_SET);
 
   /* allocate memory */
-  buf= (char *) malloc(length+1);
+  buf= (unsigned char *) malloc(length+1);
 
   /* read file */
   fread(buf, length, 1, file);
