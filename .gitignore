@@ -1,5 +1,4 @@
-edit-text
+*.o
+rw-elf
 hello
-simple-libelf
-funcs
-elf
+hello2

@@ -1,23 +1,23 @@
-CC=gcc
-LIBELF_PATH=/usr/local/src/elftoolchain/
-LIBELF_LIB=/usr/lib/libelf.a
+CC := gcc
+SHELL := /bin/bash
 
-all: funcs simple-libelf edit-text hello elf
+SOURCES	= elf.c rw-elf.c
+OBJECTS	= $(SOURCES:.c=.o)
 
-elf: elf.c
+all: rw-elf
+
+%: %.o
+	$(CC) -o $@ $<
+
+rw-elf: rw-elf.o elf.o
 	$(CC) -o $@ $^
 
-funcs: funcs.c
-	$(CC) -o $@ -I$(LIBELF_PATH)common -I$(LIBELF_PATH)libelf/ $^ $(LIBELF_LIB)
-
-simple-libelf: simple-libelf.c
-	$(CC) -o $@ -I$(LIBELF_PATH)common -I$(LIBELF_PATH)libelf/ $^ $(LIBELF_LIB)
-
-edit-text: edit-text.c
-	$(CC) -o $@ -I$(LIBELF_PATH)common -I$(LIBELF_PATH)libelf/ $^ $(LIBELF_LIB)
-
-hello: hello.c
-	$(CC) -o $@ $^
+check: hello rw-elf
+	./rw-elf ./hello ./hello2; \
+	chmod +x hello2; \
+	diff     hello      hello2  && echo "[FAIL] same binary"; \
+	diff <(./hello) <(./hello2) || echo "[FAIL] different output"; \
+	echo "[PASS] same output different elf files";
 
 clean:
-	rm -f hello edit-text simple-libelf funcs
+	rm -f rw-elf $(OBJECTS) hello hello2
