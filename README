@@ -1,0 +1,13 @@
+A simple library for the manipulation of extant elf files
+
+Files:
+    elf.h | defines the API
+    elf.c | implementation, works on both 32- and 64-bit systems
+  hello.c | example file used by "make check"
+ rw-elf.c | demonstrates a simple application, changing the bytes of
+          | the .text section of an existing elf file
+
+Running:
+       make | builds all object files and the rw-elf executable
+ make check | runs rw-elf over hello creating hello2 which has a
+            | modified .text section but is still functional
