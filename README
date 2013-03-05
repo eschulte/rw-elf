@@ -1,13 +1,18 @@
-A simple library for the manipulation of extant elf files
+Manipulate ELF executables
 
-Files:
-    elf.h | defines the API
-    elf.c | implementation, works on both 32- and 64-bit systems
-  hello.c | example file used by "make check"
- rw-elf.c | demonstrates a simple application, changing the bytes of
-          | the .text section of an existing elf file
+This tool performs a number of operations on ELF executables
 
-Running:
-       make | builds all object files and the rw-elf executable
- make check | runs rw-elf over hello creating hello2 which has a
-            | modified .text section but is still functional
+    instrs | prints the number of instructions in the .text section
+      list | lists each instruction with its ID
+    delete | replace the numbered instruction with nops
+    insert | copies the second numbered instruction before the first
+      swap | swaps two numbered instructions
+
+Installation
+
+    make
+    make install
+
+Examples
+
+    pending...
