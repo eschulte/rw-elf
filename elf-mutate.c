@@ -8,6 +8,7 @@
 void number(char *in){
   printf("text size %d\n", get_text_data_size(in)); }
 
+/* Higher level methods
 void delete(char *buf, int stmt1){
   buf[stmt1] = 0; }
 
@@ -18,6 +19,7 @@ void swap(char *buf, int stmt1, int stmt2){
   char tmp=buf[stmt1];
   buf[stmt1] = buf[stmt2];
   buf[stmt2] = tmp; }
+*/
 
 int main(int argc, char *argv[]){
   int c, stmt1, stmt2, size;
@@ -29,12 +31,14 @@ int main(int argc, char *argv[]){
     "Actions:\n"
     "  -h          print this help information\n"
     "  -n          print the number of bytes\n"
+    /* Higher level methods
     "  -d ID       replace instruction ID with nops\n"
     "  -i ID1 ID2  copy instruction ID2 before instruction ID1\n"
     "  -s ID1 ID2  swap instructions ID1 and ID2\n"
+    */
     "  -G ID       get the value of byte ID\n"
     "  -S ID NUM   set the value of byte ID to NUM\n"
-    "  -o OUTFILE  write current elf contents to OUTFILE";
+    "  -o OUTFILE  write current contents to OUTFILE";
   opterr = 0;
   buf = NULL;
   size = 0;
@@ -47,9 +51,10 @@ int main(int argc, char *argv[]){
     printf("file `%s' not readable\n", in);
     return 1; }
 
-  while ((c = getopt (argc, argv, "hnd:i:s:o:G:S:")) != -1)
+  while ((c = getopt (argc, argv, "hns:o:G:S:")) != -1)
     switch(c){
     case 'n': number(in); break;
+      /*  Higher level methods
     case 'd':
       stmt1 = atoi(optarg);
       optind++;
@@ -67,6 +72,7 @@ int main(int argc, char *argv[]){
       optind++;
       stmt2 = atoi(argv[optind]);
       swap(buf, stmt1, stmt2); break;
+      */
     case 'G':
       if(! buf){ buf = read_raw(in); }
       size = file_size(in);
