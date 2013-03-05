@@ -1,23 +1,18 @@
-CC := gcc
-SHELL := /bin/bash
+CC	:= gcc
+CFLAGS	:= -Wall -pedantic -Werror -Wundef -Winline -Wextra -O2
+DESTDIR  =
+PREFIX	 = /usr
 
-SOURCES	= elf.c rw-elf.c
+SOURCES	= elf.c elf-mutate.c
 OBJECTS	= $(SOURCES:.c=.o)
 
-all: rw-elf
+all: elf-mutate
 
-%: %.o
-	$(CC) -o $@ $<
-
-rw-elf: rw-elf.o elf.o
+elf-mutate: $(OBJECTS)
 	$(CC) -o $@ $^
 
-check: hello rw-elf
-	./rw-elf ./hello ./hello2; \
-	chmod +x hello2; \
-	diff     hello      hello2  && echo "[FAIL] same binary"; \
-	diff <(./hello) <(./hello2) || echo "[FAIL] different output"; \
-	echo "[PASS] same output different elf files";
+install: elf-mutate
+	install -D $< $(DESTDIR)$(PREFIX)/bin/$<
 
 clean:
-	rm -f rw-elf $(OBJECTS) hello hello2
+	rm -f elf-mutate $(OBJECTS) hello hello2

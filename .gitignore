@@ -1,4 +1,4 @@
 *.o
-rw-elf
+elf-mutate
 hello
 hello2
