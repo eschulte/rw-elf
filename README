@@ -2,10 +2,10 @@ Manipulate ELF executables
 
 This tool performs a number of operations on ELF executables
 
-    instrs | prints the number of instructions in the .text section
+    instrs | print number of instructions in the .text section
       list | lists each instruction with its ID
     delete | replace the numbered instruction with nops
-    insert | copies the second numbered instruction before the first
+    insert | copy second numbered instruction before the first
       swap | swaps two numbered instructions
 
 Installation
