@@ -3,19 +3,19 @@ CFLAGS	:= -Wall -pedantic -Werror -Wundef -Winline -Wextra -O2
 DESTDIR  =
 PREFIX	 = /usr
 
-SOURCES	= elf.c elf-mutate.c
+SOURCES	= elf.c rw-elf.c
 OBJECTS	= $(SOURCES:.c=.o)
 
-all: elf-mutate
+all: rw-elf
 
-elf-mutate: $(OBJECTS)
+rw-elf: $(OBJECTS)
 	$(CC) -o $@ $^
 
 hello:
 	echo 'main(){puts("hello");}'|gcc -x c - -o $@
 
-install: elf-mutate
+install: rw-elf
 	install -D $< $(DESTDIR)$(PREFIX)/bin/$<
 
 clean:
-	rm -f elf-mutate $(OBJECTS) hello hello2
+	rm -f rw-elf $(OBJECTS) hello hello2

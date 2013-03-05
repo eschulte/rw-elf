@@ -24,7 +24,7 @@ int text_ind(int offset){
 
 int main(int argc, char *argv[]){
   char *help =
-    "elf-mutate ELF [ACTIONS..]\n"
+    "rw-elf ELF [ACTIONS..]\n"
     "load ELF format FILE and perform ACTIONS\n"
     "\n"
     "Actions:\n"

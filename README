@@ -14,8 +14,8 @@ Installation
 
 Examples
 
-    $ elf-mutate -h
-    elf-mutate ELF [ACTIONS..]
+    $ rw-elf -h
+    rw-elf ELF [ACTIONS..]
     load ELF format FILE and perform ACTIONS
 
     Actions:
@@ -25,16 +25,16 @@ Examples
       -s ID NUM   set the value of .text byte ID to NUM
       -o OUTFILE  write current contents to OUTFILE
 
-    $ elf-mutate hello -n
+    $ rw-elf hello -n
     404
 
-    $ elf-mutate hello -g 402 -g 403
+    $ rw-elf hello -g 402 -g 403
     66
     90
 
-    $ elf-mutate hello -s 402 90 -o hello2
+    $ rw-elf hello -s 402 90 -o hello2
 
-    $ elf-mutate hello2 -g 402 -g 403     
+    $ rw-elf hello2 -g 402 -g 403     
     90
     90
 
