@@ -11,6 +11,9 @@ all: elf-mutate
 elf-mutate: $(OBJECTS)
 	$(CC) -o $@ $^
 
+hello:
+	echo 'main(){puts("hello");}'|gcc -x c - -o $@
+
 install: elf-mutate
 	install -D $< $(DESTDIR)$(PREFIX)/bin/$<
 
