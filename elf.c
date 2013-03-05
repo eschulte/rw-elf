@@ -29,7 +29,7 @@ int class;
 #define  SH_OFF(buf,shoff,shesz,ind) int_from_bytes(buf, (shoff + (shesz * ind) + 12 + (class * 4)), (class * 4))
 #define SH_SIZE(buf,shoff,shesz,ind) int_from_bytes(buf, (shoff + (shesz * ind) + 12 + (class * 8)), (class * 4))
 
-void sanity_check(char *buf){
+void sanity_check(unsigned char *buf){
   check_magic(buf);
   class = CLASS(buf);
   if(!((class == ELF32) || (class == ELF64)))
@@ -37,7 +37,7 @@ void sanity_check(char *buf){
 }
 
 int get_text_address(char *path){
-  char *buf = read_raw(path);
+  unsigned char *buf = read_raw(path);
   int text_shd;
   unsigned int shoff, shesz, addr;
 
@@ -59,7 +59,7 @@ int get_text_address(char *path){
 }
 
 int get_text_offset(char *path){
-  char *buf = read_raw(path);
+  unsigned char *buf = read_raw(path);
   int text_shd;
   unsigned int shoff, shesz, off;
 
@@ -79,7 +79,7 @@ int get_text_offset(char *path){
 }
 
 int get_text_data_size(char *path){
-  char *buf = read_raw(path);
+  unsigned char *buf = read_raw(path);
   int text_shd;
   unsigned int shoff, shesz, size;
 
@@ -99,7 +99,7 @@ int get_text_data_size(char *path){
 }
 
 unsigned char *get_text_data(char *path){
-  char *buf;
+  unsigned char *buf;
   unsigned char *text;
   int text_shd;
   buf = read_raw(path);
@@ -117,7 +117,7 @@ unsigned char *get_text_data(char *path){
   return text;
 }
 
-unsigned char *section_data(char *buf, int id){
+unsigned char *section_data(unsigned char *buf, int id){
   int i;
   int shoff = SHOFF(buf);
   int shesz = SH_E_SZ(buf);
@@ -132,7 +132,7 @@ unsigned char *section_data(char *buf, int id){
   return data;
 }
 
-int text_section_header(char *buf){
+int text_section_header(unsigned char *buf){
   int i, j, str_off;
   char name[256];
   int shoff = SHOFF(buf);
@@ -169,7 +169,7 @@ int text_section_header(char *buf){
   return -1;
 }
 
-int print_header_info(char *buf){
+int print_header_info(unsigned char *buf){
   sanity_check(buf);
 
   switch (class){
@@ -194,7 +194,7 @@ int print_header_info(char *buf){
   return 0;
 }
 
-unsigned int int_from_bytes(char *buf, int pos, int num){
+unsigned int int_from_bytes(unsigned char *buf, int pos, int num){
   unsigned char * tmp = malloc(sizeof(unsigned char) * num);
   int i;
   unsigned int acc = 0;
@@ -203,7 +203,7 @@ unsigned int int_from_bytes(char *buf, int pos, int num){
   return acc;
 }
 
-int check_magic(char *buf){
+int check_magic(unsigned char *buf){
   const char *magic = "ELF";
   int i;
   for(i=0; i<4; i++)
@@ -214,9 +214,9 @@ int check_magic(char *buf){
   return 0;
 }
 
-char *read_raw(char *path){
+unsigned char *read_raw(char *path){
   FILE *file;
-  char *buf;
+  unsigned char *buf;
   unsigned long length;
 
   /* open file */
@@ -228,7 +228,7 @@ char *read_raw(char *path){
   fseek(file, 0, SEEK_SET);
 
   /* allocate memory */
-  buf = (char *) malloc(length+1);
+  buf = malloc(length+1);
 
   /* read file */
   fread(buf, length, 1, file);
@@ -249,7 +249,7 @@ int file_size(char *path){
   return length;
 }
 
-void write_raw(char *path, char *buf, int size){
+void write_raw(char *path, unsigned char *buf, int size){
   int i;
   FILE *file;
   file = fopen(path, "w");
