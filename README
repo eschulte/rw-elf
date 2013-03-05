@@ -1,11 +1,11 @@
 Manipulate ELF executables
 
-This tool performs a number of operations on ELF executables
+This tool modifies the .text section of ELF executables
 
-    number | print number of instructions in the .text section
-    delete | replace the numbered instruction with nops
-    insert | copy second numbered instruction before the first
-      swap | swaps two numbered instructions
+    number | print number of bytes in the .text section
+       get | print the nth byte in the .text section
+       set | set the nth byte in the .text section to a value
+       out | write the modified elf data to a file
 
 Installation
 
@@ -20,8 +20,26 @@ Examples
 
     Actions:
       -h          print this help information
-      -n          print the number of bytes
-      -d ID       replace instruction ID with nops
-      -i ID1 ID2  copy instruction ID2 before instruction ID1
-      -s ID1 ID2  swap instructions ID1 and ID2
-      -o OUTFILE  write current elf contents to OUTFILE
+      -n          print the number of .text bytes
+      -s ID       get the value of .text byte ID
+      -s ID NUM   set the value of .text byte ID to NUM
+      -o OUTFILE  write current contents to OUTFILE
+
+    $ elf-mutate hello -n
+    404
+
+    $ elf-mutate hello -g 402 -g 403
+    66
+    90
+
+    $ elf-mutate hello -s 402 90 -o hello2
+
+    $ elf-mutate hello2 -g 402 -g 403     
+    90
+    90
+
+    $ diff hello hello2
+    Binary files hello and hello2 differ
+
+    $ ./hello2
+    hello
