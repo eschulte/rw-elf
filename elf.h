@@ -2,9 +2,9 @@
 #include <stdlib.h>
 
 void             sanity_check(char *buf);
-char *               read_raw(char *path);
+unsigned char *      read_raw(char *path);
 int                 file_size(char *path);
-void                write_raw(char *path, char *buf, int size);
+void                write_raw(char *path, unsigned char *buf, int size);
 int               check_magic(char *buf);
 int                 elf_class(char *buf);
 unsigned int   int_from_bytes(char *buf, int pos, int num);

@@ -6,27 +6,24 @@
 #include <sys/stat.h>
 
 #define CHECKIN {if(!in){fprintf(stderr, "Infile required.\n"); abort();}}
-#define GETBUF  {CHECKIN; if(!buf){buf=read_raw(in);} size=file_size(in);}
+#define GETBUF  {CHECKIN; if(!buf){             \
+      buf=read_raw(in);                         \
+      size=file_size(in);                       \
+      text_offset=get_text_offset(in);          \
+      text_size=get_text_data_size(in); } }
 
-void number(char *in){
-  printf("text size %d\n", get_text_data_size(in)); }
+unsigned char *buf;
+int size, text_offset, text_size = 0;
 
-/* Higher level methods
-void delete(char *buf, int stmt1){
-  buf[stmt1] = 0; }
-
-void insert(char *buf, int stmt1, int stmt2){
-  buf[stmt1+1] = buf[stmt2]; }
-
-void swap(char *buf, int stmt1, int stmt2){
-  char tmp=buf[stmt1];
-  buf[stmt1] = buf[stmt2];
-  buf[stmt2] = tmp; }
-*/
+int text_ind(int offset){
+  if(offset >= text_size){
+    fprintf(stderr, "Invalid index into text section `%d'.\n", offset);
+    abort(); }
+  return (offset+text_offset); }
 
 int main(int argc, char *argv[]){
-  int c, stmt1, stmt2, size;
-  char *in, *buf;
+  int c;
+  char *in;
   char *help =
     "elf-mutate ELF [ACTIONS..]\n"
     "load ELF format FILE and perform ACTIONS\n"
@@ -45,7 +42,7 @@ int main(int argc, char *argv[]){
   opterr = 0;
   in = NULL;
   buf = NULL;
-  size = 0;
+  size = text_offset = text_size = 0;
 
   if(argc < 2){ puts(help); abort(); }
   if(argv[1][0] == '-' && argv[1][1] == 'h'){ puts(help); return 1; }
@@ -57,21 +54,20 @@ int main(int argc, char *argv[]){
 
   while ((c = getopt (argc, argv, "hns:o:G:S:")) != -1)
     switch(c){
-    case 'n': number(in); break;
+    case 'n': printf("text size %d\n", get_text_data_size(in)); break;
       /*  Higher level methods
     case 'd':
+      GETBUF;
       stmt1 = atoi(optarg);
-      optind++;
-      stmt2 = atoi(argv[optind]);
-      if(! buf){ buf = read_raw(in); }
-      size = file_size(in);
       delete(buf, stmt1); break;
     case 'i':
+      GETBUF;
       stmt1 = atoi(optarg);
       optind++;
       stmt2 = atoi(argv[optind]);
       insert(buf, stmt1, stmt2); break;
     case 's':
+      GETBUF;
       stmt1 = atoi(optarg);
       optind++;
       stmt2 = atoi(argv[optind]);
@@ -79,13 +75,10 @@ int main(int argc, char *argv[]){
       */
     case 'G':
       GETBUF;
-      printf("%x\n", buf[atoi(optarg)]); break;
+      printf("%x\n", buf[text_ind(atoi(optarg))]); break;
     case 'S':
       GETBUF;
-      stmt1 = atoi(optarg);
-      optind++;
-      stmt2 = atoi(argv[optind]);
-      buf[stmt1] = stmt2; break;
+      buf[text_ind(atoi(optarg))] = atoi(argv[optind]); break;
     case 'o':
       write_raw(optarg, buf, size);
       chmod(optarg, strtol("0777", 0, 8));
