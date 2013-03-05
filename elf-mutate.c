@@ -5,6 +5,9 @@
 #include <unistd.h>
 #include <sys/stat.h>
 
+#define CHECKIN {if(!in){fprintf(stderr, "Infile required.\n"); abort();}}
+#define GETBUF  {CHECKIN; if(!buf){buf=read_raw(in);} size=file_size(in);}
+
 void number(char *in){
   printf("text size %d\n", get_text_data_size(in)); }
 
@@ -40,6 +43,7 @@ int main(int argc, char *argv[]){
     "  -S ID NUM   set the value of byte ID to NUM\n"
     "  -o OUTFILE  write current contents to OUTFILE";
   opterr = 0;
+  in = NULL;
   buf = NULL;
   size = 0;
 
@@ -74,12 +78,10 @@ int main(int argc, char *argv[]){
       swap(buf, stmt1, stmt2); break;
       */
     case 'G':
-      if(! buf){ buf = read_raw(in); }
-      size = file_size(in);
+      GETBUF;
       printf("%x\n", buf[atoi(optarg)]); break;
     case 'S':
-      if(! buf){ buf = read_raw(in); }
-      size = file_size(in);
+      GETBUF;
       stmt1 = atoi(optarg);
       optind++;
       stmt2 = atoi(argv[optind]);
