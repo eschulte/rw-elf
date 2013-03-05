@@ -39,6 +39,7 @@ void sanity_check(char *buf){
 int get_text_address(char *path){
   char *buf = read_raw(path);
   int text_shd;
+  unsigned int shoff, shesz, addr;
 
   sanity_check(buf);
 
@@ -49,9 +50,9 @@ int get_text_address(char *path){
   }
 
   /* get the size of the text section */
-  unsigned int shoff = SHOFF(buf);
-  unsigned int shesz = SH_E_SZ(buf);
-  unsigned int addr = SH_ADDR(buf,shoff,shesz,text_shd);
+  shoff = SHOFF(buf);
+  shesz = SH_E_SZ(buf);
+  addr = SH_ADDR(buf,shoff,shesz,text_shd);
 
   free(buf);
   return addr;
@@ -60,6 +61,7 @@ int get_text_address(char *path){
 int get_text_offset(char *path){
   char *buf = read_raw(path);
   int text_shd;
+  unsigned int shoff, shesz, off;
 
   sanity_check(buf);
 
@@ -68,9 +70,9 @@ int get_text_offset(char *path){
     printf("text section not found\n");
 
   /* get the size of the text section */
-  int shoff = SHOFF(buf);
-  int shesz = SH_E_SZ(buf);
-  int off = SH_OFF(buf,shoff,shesz,text_shd);
+  shoff = SHOFF(buf);
+  shesz = SH_E_SZ(buf);
+  off = SH_OFF(buf,shoff,shesz,text_shd);
 
   free(buf);
   return off;
@@ -79,6 +81,7 @@ int get_text_offset(char *path){
 int get_text_data_size(char *path){
   char *buf = read_raw(path);
   int text_shd;
+  unsigned int shoff, shesz, size;
 
   sanity_check(buf);
 
@@ -87,17 +90,19 @@ int get_text_data_size(char *path){
     printf("text section not found\n");
 
   /* get the size of the text section */
-  int shoff = SHOFF(buf);
-  int shesz = SH_E_SZ(buf);
-  int size = SH_SIZE(buf,shoff,shesz,text_shd);
+  shoff = SHOFF(buf);
+  shesz = SH_E_SZ(buf);
+  size = SH_SIZE(buf,shoff,shesz,text_shd);
 
   free(buf);
   return size;
 }
 
-char *get_text_data(char *path){
-  char *buf = read_raw(path);
+unsigned char *get_text_data(char *path){
+  char *buf;
+  unsigned char *text;
   int text_shd;
+  buf = read_raw(path);
 
   sanity_check(buf);
 
@@ -106,19 +111,19 @@ char *get_text_data(char *path){
     printf("text section not found\n");
 
   /* get the .text data */
-  unsigned char *text = section_data(buf, text_shd);
+  text = section_data(buf, text_shd);
 
   free(buf);
   return text;
 }
 
-char *section_data(char *buf, int id){
+unsigned char *section_data(char *buf, int id){
+  int i;
   int shoff = SHOFF(buf);
   int shesz = SH_E_SZ(buf);
   int off = SH_OFF(buf,shoff,shesz,id);
   int size = SH_SIZE(buf,shoff,shesz,id);
-  int i, tmp;
-  char *data;
+  unsigned char *data;
 
   data = (unsigned char *) malloc(size+1);
 
@@ -128,35 +133,30 @@ char *section_data(char *buf, int id){
 }
 
 int text_section_header(char *buf){
+  int i, j, str_off;
+  char name[256];
   int shoff = SHOFF(buf);
   int shesz = SH_E_SZ(buf);
   int shnum = SH_NUM(buf);
   int shsrnd = SH_SRND(buf);
-
-  int sh_names[shnum];
-  int sh_offsets[shnum];
+  int* sh_names = malloc(sizeof(int) * shnum);
+  int* sh_offsets = malloc(sizeof(int) * shnum);
 
   /* print the names of the section headers */
-  int i;
   for(i=0;i<shnum;i++){
     sh_names[i] = SH_NAME(buf,shoff,shesz,i);
     sh_offsets[i] = SH_OFF(buf,shoff,shesz,i);
   }
 
   /* find the .text section */
-  int str_off = sh_offsets[shsrnd];
-  char name[256];
-  int j;
+  str_off = sh_offsets[shsrnd];
   for(i=0;i<shnum;i++){
     j=-1;
     do {
       j++;
       name[j] = buf[str_off + sh_names[i] + j];
     } while (name[j] != 0);
-
-    /* show the section names */
-    // printf("%d\t%s\n", i, name);
-
+    
     if ((name[0] == '.') &&
         (name[1] == 't') &&
         (name[2] == 'e') &&
@@ -195,8 +195,8 @@ int print_header_info(char *buf){
 }
 
 unsigned int int_from_bytes(char *buf, int pos, int num){
-  unsigned char tmp[num];
-  int i, t = 0;
+  unsigned char * tmp = malloc(sizeof(unsigned char) * num);
+  int i;
   unsigned int acc = 0;
   for(i=0;i<num;i++) tmp[i] = buf[(pos + i)];
   for(i=0;i<num;i++) acc += tmp[i] << (8 * i);
@@ -228,7 +228,7 @@ char *read_raw(char *path){
   fseek(file, 0, SEEK_SET);
 
   /* allocate memory */
-  buf= (unsigned char *) malloc(length+1);
+  buf = (char *) malloc(length+1);
 
   /* read file */
   fread(buf, length, 1, file);
@@ -250,9 +250,9 @@ int file_size(char *path){
 }
 
 void write_raw(char *path, char *buf, int size){
+  int i;
   FILE *file;
   file = fopen(path, "w");
-  int i;
   for(i=0;i<size;i++)
     fputc(buf[i], file);
   fclose(file);
