@@ -2,8 +2,7 @@ Manipulate ELF executables
 
 This tool performs a number of operations on ELF executables
 
-    instrs | print number of instructions in the .text section
-      list | lists each instruction with its ID
+    number | print number of instructions in the .text section
     delete | replace the numbered instruction with nops
     insert | copy second numbered instruction before the first
       swap | swaps two numbered instructions
@@ -15,4 +14,14 @@ Installation
 
 Examples
 
-    pending...
+    $ elf-mutate -h
+    elf-mutate ELF [ACTIONS..]
+    load ELF format FILE and perform ACTIONS
+
+    Actions:
+      -h          print this help information
+      -n          print the number of bytes
+      -d ID       replace instruction ID with nops
+      -i ID1 ID2  copy instruction ID2 before instruction ID1
+      -s ID1 ID2  swap instructions ID1 and ID2
+      -o OUTFILE  write current elf contents to OUTFILE
